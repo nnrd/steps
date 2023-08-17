@@ -1,0 +1,8 @@
+{
+  "name": "execution-steps",
+  "version": "0.1.0",
+  "description": "Execution tree with idempotent steps",
+  "main": "index.js",
+  "dependencies": {
+  }
+}
