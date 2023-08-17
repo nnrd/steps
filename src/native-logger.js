@@ -16,4 +16,4 @@ module.exports = {
     info,
     error,
     debug,
-}
+};

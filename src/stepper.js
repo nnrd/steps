@@ -2,7 +2,8 @@
 
 const StepRunningError = require('./running-error');
 const DummyDriver = require('./dummy-driver');
-const DummyLogger = require('./native-logger');
+const DummyLogger = require('./dummy-logger');
+const NativeLogger = require('./native-logger');
 
 const DEFAULT_LOCK_PREFIX = 'STEP';
 const DEFAULT_LOCK_DELIMITER = '/';
@@ -10,7 +11,7 @@ const DEFAULT_NAME_DELIMITER = '/';
 
 const create = (options) => {
     const driver = options?.driver || DummyDriver;
-    const logger = options?.logger || DummyLogger;
+    const logger = options?.logger || (options?.debug ? NativeLogger : DummyLogger);
     const lockPrefix = options?.lockPrefix || DEFAULT_LOCK_PREFIX;
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
@@ -47,9 +48,9 @@ const create = (options) => {
                     } else { // New or Failed
                         try {
                             const vars = await existingRun.getVars();
-                            logger.info('START', name);
+                            logger.debug('START', name);
                             const output = await stepFn(data, make(name), vars);
-                            logger.info('DONE', name);
+                            logger.debug('DONE', name);
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {
