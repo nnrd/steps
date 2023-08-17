@@ -79,6 +79,11 @@ const create = (options) => {
             steps.push(fn);
         };
 
+        const addFile = (stepName, fileName) => {
+            const stepFn = require(fileName);
+            return add(stepName, stepFn);
+        };
+
         const chain = async (data) => {
             for(const step of steps) {
                 data = await step(data);
@@ -93,6 +98,7 @@ const create = (options) => {
 
         return {
             add,
+            addFile,
             chain,
             batch,
             get,
