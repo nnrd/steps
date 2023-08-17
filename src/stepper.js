@@ -19,6 +19,8 @@ const create = (options) => {
     const make = (namePrefix = '', rootHash = '') => {
         const steps = [];
 
+        //console.log('RRR', namePrefix, rootHash);
+
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
         const composeStepName = (name) => namePrefix ? `${namePrefix}${nameDelimiter}${name}` : name;
 
@@ -34,6 +36,7 @@ const create = (options) => {
 
             const fn = async (data) => {
                 const hash = driver.getHash(name, data);
+                if (!rootHash) rootHash = hash;
 
                 return await driver.withLock(composeLockName(name, hash), async() => {
                     const existingRun = await driver.getRun(name, hash, rootHash);
