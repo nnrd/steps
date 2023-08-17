@@ -17,6 +17,15 @@ const create = (options) => {
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
 
+    const beforeStepHook = options?.hooks?.beforeStep;
+    const afterStepHook = options?.hooks?.afterStep;
+    const aroundStepHook = options?.hooks?.aroundStep;
+
+    const beforeExecHook = options?.hooks?.beforeExec;
+    const afterExecHook = options?.hooks?.afterExec;
+    const aroundExecHook = options?.hooks?.aroundExec;
+
+
     const make = (namePrefix = '', rootHash = '') => {
         const steps = [];
         const stepsLookup = new Map;
@@ -49,9 +58,17 @@ const create = (options) => {
                     } else { // New or Failed
                         try {
                             const vars = await existingRun.getVars();
-                            logger.debug('START', name, hash, rootHash);
-                            const output = await stepFn(data, make(name, rootHash || hash), vars);
-                            logger.debug('DONE', name, hash, rootHash);
+
+                            if (beforeStepHook) await beforeStepHook(name, data, hash, rootHash, vars);
+
+                            //logger.debug('START', name, hash, rootHash);
+                            const output = aroundStepHook
+                                  ? await aroundStepHook(() => stepFn(data, make(name, rootHash), vars), name, data, hash, rootHash, vars)
+                                  : await stepFn(data, make(name, rootHash), vars);
+                            //logger.debug('DONE', name, hash, rootHash);
+
+                            if (afterStepHook) await afterStepHook(name, data, hash, rootHash, vars, output);
+
                             const marked = await existingRun.markDone(output);
                             if (!marked) {
                                 logger.error({
@@ -88,22 +105,53 @@ const create = (options) => {
         };
 
         const chain = async (data) => {
-            for(const step of steps) {
-                data = await step(data);
+            const input = data;
+            if (beforeExecHook) await beforeExecHook(namePrefix, data);
+
+            if (aroundExecHook) {
+                await aroundExecHook(async () => {
+                    for(const step of steps) {
+                        data = await step(data);
+                    }
+                    return data;
+                }, namePrefix, data);
+            } else {
+                for(const step of steps) {
+                    data = await step(data);
+                }
             }
+
+            if (afterExecHook) await afterExecHook(namePrefix, input, data);
 
             return data;
         };
 
         const batch = async (data) => {
-            return await Promise.all(steps.map(fn => fn(data)));
+            if (beforeExecHook) await beforeExecHook(namePrefix, data);
+            let result;
+            if (aroundExecHook) {
+                result = await aroundExecHook(async () => await Promise.all(steps.map(fn => fn(data))), namePrefix, data);
+            } else {
+                result = await Promise.all(steps.map(fn => fn(data)));
+            }
+            if (afterExecHook) await afterExecHook(namePrefix, data, result);
+            return result;
         };
 
         const run = async (stepName, data) => {
             const name = composeStepName(stepName);
             const stepFn = stepsLookup.get(name);
             if (stepFn) {
-                return await stepFn(data);
+                if (beforeExecHook) await beforeExecHook(name, data);
+                let result;
+                if (aroundExecHook) {
+                    result = await aroundExecHook(async () => await stepFn(data), namePrefix, data);
+                } else {
+                    result = await stepFn(data);
+                }
+                if (afterExecHook) await afterExecHook(name, data, result);
+
+                return result;
             }
 
             throw new StepMissingError(name);
