@@ -16,7 +16,6 @@ const create = (options) => {
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
 
     const make = (namePrefix = '') => {
-
         const steps = [];
 
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
@@ -41,7 +40,8 @@ const create = (options) => {
                         throw new StepRunningError(name, hash);
                     } else { // New or Failed
                         try {
-                            const output = await stepFn(data, make(name));
+                            const vars = await existingRun.getVars();
+                            const output = await stepFn(data, make(name), vars);
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {

@@ -30,6 +30,10 @@ const getRun = (name, hash) => {
             console.error(error);
             return true;
         },
+
+        getVars() {
+            return {};
+        },
     };
 };
 
