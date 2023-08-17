@@ -25,11 +25,11 @@ const create = (options) => {
 
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
-            logger.info('NAME', name);
+            logger.debug('NAME', name);
 
             const fn = async (data) => {
                 const hash = driver.getHash(name, data);
-                logger.info('HASH', hash);
+                logger.debug('HASH', hash);
 
                 return await driver.withLock(composeLockName(name, hash), async() => {
                     const existingRun = await driver.getRun(name, hash);
