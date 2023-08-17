@@ -16,7 +16,7 @@ const create = (options) => {
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
 
-    const make = (namePrefix = '') => {
+    const make = (namePrefix = '', rootHash = '') => {
         const steps = [];
 
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
@@ -36,7 +36,7 @@ const create = (options) => {
                 const hash = driver.getHash(name, data);
 
                 return await driver.withLock(composeLockName(name, hash), async() => {
-                    const existingRun = await driver.getRun(name, hash);
+                    const existingRun = await driver.getRun(name, hash, rootHash);
 
                     if (existingRun.isDone()) {
                         return existingRun.getOutput();
@@ -46,9 +46,9 @@ const create = (options) => {
                     } else { // New or Failed
                         try {
                             const vars = await existingRun.getVars();
-                            logger.debug('START', name, hash);
-                            const output = await stepFn(data, make(name), vars);
-                            logger.debug('DONE', name, hash);
+                            logger.debug('START', name, hash, rootHash);
+                            const output = await stepFn(data, make(name, rootHash || hash), vars);
+                            logger.debug('DONE', name, hash, rootHash);
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {
