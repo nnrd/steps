@@ -22,6 +22,7 @@ const create = (options) => {
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
         const composeStepName = (name) => namePrefix ? `${namePrefix}${nameDelimiter}${name}` : name;
 
+
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
             logger.info('NAME', name);
@@ -40,7 +41,7 @@ const create = (options) => {
                         throw new StepRunningError(name, hash);
                     } else { // New or Failed
                         try {
-                            const output = await stepFn(data);
+                            const output = await stepFn(data, make(name));
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {
