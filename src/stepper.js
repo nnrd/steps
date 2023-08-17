@@ -21,6 +21,12 @@ const create = (options) => {
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
         const composeStepName = (name) => namePrefix ? `${namePrefix}${nameDelimiter}${name}` : name;
 
+        const get = async (names, data) => {
+            const name = names.join(nameDelimiter);
+            const hash = driver.getHash(name, data);
+            const stepRun = await driver.getRun(name, hash);
+            return stepRun;
+        };
 
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
@@ -41,7 +47,9 @@ const create = (options) => {
                     } else { // New or Failed
                         try {
                             const vars = await existingRun.getVars();
+                            logger.info('START', name);
                             const output = await stepFn(data, make(name), vars);
+                            logger.info('DONE', name);
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {
@@ -71,6 +79,7 @@ const create = (options) => {
             add,
             chain,
             batch,
+            get,
         };
     };
 
