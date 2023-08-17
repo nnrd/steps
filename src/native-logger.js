@@ -12,8 +12,13 @@ function debug(...args) {
     console.log(...args);
 }
 
+function warn(...args) {
+    console.log(...args);
+}
+
 module.exports = {
     info,
     error,
     debug,
+    warn,
 };

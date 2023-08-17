@@ -19,8 +19,6 @@ const create = (options) => {
     const make = (namePrefix = '', rootHash = '') => {
         const steps = [];
 
-        //console.log('RRR', namePrefix, rootHash);
-
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
         const composeStepName = (name) => namePrefix ? `${namePrefix}${nameDelimiter}${name}` : name;
 
@@ -52,10 +50,26 @@ const create = (options) => {
                             logger.debug('START', name, hash, rootHash);
                             const output = await stepFn(data, make(name, rootHash || hash), vars);
                             logger.debug('DONE', name, hash, rootHash);
-                            await existingRun.markDone(output);
+                            const marked = await existingRun.markDone(output);
+                            if (!marked) {
+                                logger.warn({
+                                    message: 'Unable to mark step done',
+                                    name,
+                                    hash,
+                                    rootHash,
+                                });
+                            }
                             return output;
                         } catch(error) {
-                            await existingRun.markFailed(error);
+                            const marked = await existingRun.markFailed(error);
+                            if (!marked) {
+                                logger.warn({
+                                    message: 'Unable to mark step failed',
+                                    name,
+                                    hash,
+                                    rootHash,
+                                });
+                            }
                             throw error;
                         }
                     }
