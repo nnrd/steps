@@ -52,7 +52,7 @@ const create = (options) => {
                             logger.debug('DONE', name, hash, rootHash);
                             const marked = await existingRun.markDone(output);
                             if (!marked) {
-                                logger.warn({
+                                logger.error({
                                     message: 'Unable to mark step done',
                                     name,
                                     hash,
@@ -63,7 +63,7 @@ const create = (options) => {
                         } catch(error) {
                             const marked = await existingRun.markFailed(error);
                             if (!marked) {
-                                logger.warn({
+                                logger.error({
                                     message: 'Unable to mark step failed',
                                     name,
                                     hash,
