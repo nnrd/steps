@@ -31,7 +31,7 @@ const make = (options) => {
             },
 
             markFailed(error) {
-                logger.error(error);
+                logger.debug(error);
                 return true;
             },
 

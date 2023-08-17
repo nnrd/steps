@@ -31,11 +31,9 @@ const create = (options) => {
 
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
-            logger.debug('NAME', name);
 
             const fn = async (data) => {
                 const hash = driver.getHash(name, data);
-                logger.debug('HASH', hash);
 
                 return await driver.withLock(composeLockName(name, hash), async() => {
                     const existingRun = await driver.getRun(name, hash);
@@ -48,9 +46,9 @@ const create = (options) => {
                     } else { // New or Failed
                         try {
                             const vars = await existingRun.getVars();
-                            logger.debug('START', name);
+                            logger.debug('START', name, hash);
                             const output = await stepFn(data, make(name), vars);
-                            logger.debug('DONE', name);
+                            logger.debug('DONE', name, hash);
                             await existingRun.markDone(output);
                             return output;
                         } catch(error) {
