@@ -1,44 +1,53 @@
 'use strict';
 const crypto = require('crypto');
+const DummyLogger = require('./dummy-logger');
 
-const getHash = (name, data) => {
-    const serialized = name + JSON.stringify(data || '');
-    var shasum = crypto.createHash('sha1');
-    shasum.update(serialized);
-    return shasum.digest('hex');
-};
+const make = (options) => {
+    const logger = options?.logger || DummyLogger;
 
-const withLock = (name, fn) => {
-    return fn();
-};
+    const getHash = (name, data) => {
+        const serialized = name + JSON.stringify(data || '');
+        var shasum = crypto.createHash('sha1');
+        shasum.update(serialized);
+        return shasum.digest('hex');
+    };
 
-const getRun = (name, hash) => {
+    const withLock = (name, fn) => {
+        return fn();
+    };
+
+    const getRun = (name, hash) => {
+        return {
+            isDone() {
+                return false;
+            },
+
+            isRunning() {
+                return false;
+            },
+
+            markDone(output) {
+                return true;
+            },
+
+            markFailed(error) {
+                logger.error(error);
+                return true;
+            },
+
+            getVars() {
+                return {};
+            },
+        };
+    };
+
     return {
-        isDone() {
-            return false;
-        },
-
-        isRunning() {
-            return false;
-        },
-
-        markDone(output) {
-            return true;
-        },
-
-        markFailed(error) {
-            console.error(error);
-            return true;
-        },
-
-        getVars() {
-            return {};
-        },
+        getHash,
+        withLock,
+        getRun,
     };
 };
 
-module.exports ={
-    getHash,
-    withLock,
-    getRun,
+module.exports = {
+    make,
 };

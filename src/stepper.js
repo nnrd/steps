@@ -10,8 +10,8 @@ const DEFAULT_LOCK_DELIMITER = '/';
 const DEFAULT_NAME_DELIMITER = '/';
 
 const create = (options) => {
-    const driver = options?.driver || DummyDriver;
     const logger = options?.logger || (options?.debug ? NativeLogger : DummyLogger);
+    const driver = options?.driver || DummyDriver.make({logger});
     const lockPrefix = options?.lockPrefix || DEFAULT_LOCK_PREFIX;
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
