@@ -1,6 +1,7 @@
 'use strict';
 
 const StepRunningError = require('./running-error');
+const StepMissingError = require('./missing-error');
 const DummyDriver = require('./dummy-driver');
 const DummyLogger = require('./dummy-logger');
 const NativeLogger = require('./native-logger');
@@ -18,6 +19,7 @@ const create = (options) => {
 
     const make = (namePrefix = '', rootHash = '') => {
         const steps = [];
+        const stepsLookup = new Map;
 
         const composeLockName = (name, hash) => `${lockPrefix}${lockDelimiter}${name}${lockDelimiter}${hash}`;
         const composeStepName = (name) => namePrefix ? `${namePrefix}${nameDelimiter}${name}` : name;
@@ -77,6 +79,7 @@ const create = (options) => {
             };
 
             steps.push(fn);
+            stepsLookup.set(name, fn);
         };
 
         const addFile = (stepName, fileName) => {
@@ -96,11 +99,22 @@ const create = (options) => {
             return await Promise.all(steps.map(fn => fn(data)));
         };
 
+        const run = async (stepName, data) => {
+            const name = composeStepName(stepName);
+            const stepFn = stepsLookup.get(name);
+            if (stepFn) {
+                return await stepFn(data);
+            }
+
+            throw new StepMissingError(name);
+        };
+
         return {
             add,
             addFile,
             chain,
             batch,
+            run,
             get,
         };
     };
