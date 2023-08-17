@@ -63,7 +63,7 @@ const create = (options) => {
 
                             //logger.debug('START', name, hash, rootHash);
                             const output = aroundStepHook
-                                  ? await aroundStepHook(() => stepFn(data, make(name, rootHash), vars), name, data, hash, rootHash, vars)
+                                  ? await aroundStepHook(async () => await stepFn(data, make(name, rootHash), vars), name, data, hash, rootHash, vars)
                                   : await stepFn(data, make(name, rootHash), vars);
                             //logger.debug('DONE', name, hash, rootHash);
 
