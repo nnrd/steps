@@ -3,6 +3,7 @@
 const StepRunningError = require('./running-error');
 const StepMissingError = require('./missing-error');
 const StepDuplicateError = require('./duplicate-error');
+const StepMarkError = require('./mark-error');
 const Hash = require('./hash');
 const DummyStorageHandler = require('./dummy-storage-handler');
 const DummyLockHandler = require('./dummy-lock-handler');
@@ -66,6 +67,11 @@ const create = (options) => {
                         throw new StepRunningError(name, hash);
                     } else { // New or Failed
                         try {
+                            const markedRun = await existingRun.markRunning();
+                            if (!markedRun) {
+                                throw new StepMarkError(name, hash, rootHash, 'running');
+                            }
+
                             const vars = await existingRun.getVars();
 
                             if (beforeStepHook) await beforeStepHook(name, data, hash, rootHash, vars);
@@ -78,21 +84,16 @@ const create = (options) => {
 
                             if (afterStepHook) await afterStepHook(name, data, hash, rootHash, vars, output);
 
-                            const marked = await existingRun.markDone(output);
-                            if (!marked) {
-                                logger.error({
-                                    message: 'Unable to mark step done',
-                                    name,
-                                    hash,
-                                    rootHash,
-                                });
+                            const markedDone = await existingRun.markDone(output);
+                            if (!markedDone) {
+                                throw new StepMarkError(name, hash, rootHash, 'done');
                             }
                             return output;
                         } catch(error) {
-                            const marked = await existingRun.markFailed(error);
-                            if (!marked) {
+                            const markedFailed = await existingRun.markFailed(error);
+                            if (!markedFailed) {
                                 logger.error({
-                                    message: 'Unable to mark step failed',
+                                    message: 'Unable to mark step',
                                     name,
                                     hash,
                                     rootHash,
