@@ -7,7 +7,6 @@ class StepRunningError extends Error {
         this.name = name;
         this.hash = hash;
     }
-
 }
 
 module.exports = StepRunningError;

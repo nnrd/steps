@@ -2,6 +2,8 @@
 
 const StepRunningError = require('./running-error');
 const StepMissingError = require('./missing-error');
+const StepDuplicateError = require('./duplicate-error');
+const Hash = require('./hash');
 const DummyDriver = require('./dummy-driver');
 const DummyLogger = require('./dummy-logger');
 const NativeLogger = require('./native-logger');
@@ -13,6 +15,7 @@ const DEFAULT_NAME_DELIMITER = '/';
 const create = (options) => {
     const logger = options?.logger || (options?.debug ? NativeLogger : DummyLogger);
     const driver = options?.driver || DummyDriver.make({logger});
+    const hasher = options?.hash || Hash.make();
     const lockPrefix = options?.lockPrefix || DEFAULT_LOCK_PREFIX;
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
     const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
@@ -35,13 +38,17 @@ const create = (options) => {
 
         const get = async (names, data) => {
             const name = names.join(nameDelimiter);
-            const hash = driver.getHash(name, data);
+            const hash = hasher.getHash(name, data);
             const stepRun = await driver.getRun(name, hash);
             return stepRun;
         };
 
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
+
+            if (stepsLookup.has(name)) {
+                throw new StepDuplicateError(name);
+            }
 
             const fn = async (data) => {
                 const hash = driver.getHash(name, data);

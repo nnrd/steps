@@ -6,7 +6,6 @@ class StepMissingError extends Error {
 
         this.name = name;
     }
-
 }
 
 module.exports = StepMissingError;

@@ -1,16 +1,8 @@
 'use strict';
-const crypto = require('crypto');
 const DummyLogger = require('./dummy-logger');
 
 const make = (options) => {
     const logger = options?.logger || DummyLogger;
-
-    const getHash = (name, data) => {
-        const serialized = name + JSON.stringify(data || '');
-        var shasum = crypto.createHash('sha1');
-        shasum.update(serialized);
-        return shasum.digest('hex');
-    };
 
     const withLock = (name, fn) => {
         return fn();
@@ -78,7 +70,6 @@ const make = (options) => {
     };
 
     return {
-        getHash,
         withLock,
         getRun,
     };
