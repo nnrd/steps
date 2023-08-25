@@ -31,11 +31,30 @@ const make = (options) => {
             },
 
             /**
+             * Check if step run is failed
+             * @returns {boolean}
+             */
+            isFailed() {
+                return false;
+            },
+
+            /**
+             * Mark step as running
+             * @returns {boolean}
+             */
+            async markRunning() {
+                if (rootHash === undefined) {
+                    return false;
+                }
+                return true;
+            },
+
+            /**
              * Mark step run as successfully done
              * @param {object} output Step execution output result
              * @returns {boolean}
              */
-            markDone(output) {
+            async markDone(output) {
                 if (rootHash === undefined) {
                     return false;
                 }
@@ -47,7 +66,7 @@ const make = (options) => {
              * @param {Error} error Error happend while executing step
              * @returns {boolean}
              */
-            markFailed(error) {
+            async markFailed(error) {
                 logger.debug(error);
                 if (rootHash === undefined) {
                     return false;
