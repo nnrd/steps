@@ -4,10 +4,6 @@ const DummyLogger = require('./dummy-logger');
 const make = (options) => {
     const logger = options?.logger || DummyLogger;
 
-    const withLock = (name, fn) => {
-        return fn();
-    };
-
     /**
      * Get existing step run info or create new one
      *
@@ -70,7 +66,6 @@ const make = (options) => {
     };
 
     return {
-        withLock,
         getRun,
     };
 };

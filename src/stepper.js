@@ -4,7 +4,8 @@ const StepRunningError = require('./running-error');
 const StepMissingError = require('./missing-error');
 const StepDuplicateError = require('./duplicate-error');
 const Hash = require('./hash');
-const DummyDriver = require('./dummy-driver');
+const DummyStorageHandler = require('./dummy-storage-handler');
+const DummyLockHandler = require('./dummy-lock-handler');
 const DummyLogger = require('./dummy-logger');
 const NativeLogger = require('./native-logger');
 
@@ -14,7 +15,8 @@ const DEFAULT_NAME_DELIMITER = '/';
 
 const create = (options) => {
     const logger = options?.logger || (options?.debug ? NativeLogger : DummyLogger);
-    const driver = options?.driver || DummyDriver.make({logger});
+    const storageHandler = options?.storageHandler || DummyStorageHandler.make({logger});
+    const lockHandler = options?.lockHandler || DummyLockHandler.make({logger});
     const hasher = options?.hash || Hash.make();
     const lockPrefix = options?.lockPrefix || DEFAULT_LOCK_PREFIX;
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
@@ -39,7 +41,7 @@ const create = (options) => {
         const get = async (names, data) => {
             const name = names.join(nameDelimiter);
             const hash = hasher.getHash(name, data);
-            const stepRun = await driver.getRun(name, hash);
+            const stepRun = await storageHandler.getRun(name, hash);
             return stepRun;
         };
 
@@ -51,11 +53,11 @@ const create = (options) => {
             }
 
             const fn = async (data) => {
-                const hash = driver.getHash(name, data);
+                const hash = hasher.getHash(name, data);
                 if (!rootHash) rootHash = hash;
 
-                return await driver.withLock(composeLockName(name, hash), async() => {
-                    const existingRun = await driver.getRun(name, hash, rootHash);
+                return await lockHandler.withLock(composeLockName(name, hash), async() => {
+                    const existingRun = await storageHandler.getRun(name, hash, rootHash);
 
                     if (existingRun.isDone()) {
                         return existingRun.getOutput();
