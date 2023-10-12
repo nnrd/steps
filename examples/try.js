@@ -1,7 +1,23 @@
 const {StepperFactory} = require('../index');
 
-const stepper = StepperFactory.create({debug:true});
-const steps = stepper.make();
+const stepper = StepperFactory.create({
+    debug:true,
+    hooks: {
+        // async aroundExec(fn, name, data) {
+        //     console.log('AROUND', name, data);
+        //     const result = await fn();
+        //     console.log('AFTER AROUND', name, result);
+        //     return result;
+        // },
+        async aroundStep(fn, name, data) {
+            console.log('AROUND STEP', name, data);
+            const result = await fn();
+            console.log('AFTER AROUND STEP', name, result);
+            return result;
+        },
+    }
+});
+const steps = stepper.make('JOB');
 
 async function main() {
     steps.add('Root', async (z, s) => {
@@ -29,7 +45,7 @@ async function main() {
             return n*n;
         });
 
-        return  await s.chain(z);
+        return await s.chain(z);
     });
 
     const result = await steps.chain(42);
