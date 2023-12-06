@@ -21,7 +21,7 @@ const create = (options) => {
     const hasher = options?.hash || Hash.make();
     const lockPrefix = options?.lockPrefix || DEFAULT_LOCK_PREFIX;
     const lockDelimiter = options?.lockDelimiter || DEFAULT_LOCK_DELIMITER;
-    const nameDelimiter = options?.lockDelimiter || DEFAULT_NAME_DELIMITER;
+    const nameDelimiter = options?.nameDelimiter || DEFAULT_NAME_DELIMITER;
 
     const beforeStepHook = options?.hooks?.beforeStep;
     const afterStepHook = options?.hooks?.afterStep;
