@@ -75,6 +75,14 @@ const make = (options) => {
             },
 
             /**
+             * Get step run output
+             * @returns {object}
+             */
+            getOutput() {
+                return {};
+            },
+
+            /**
              * Get step run persistent variable
              * @returns {object}
              */
