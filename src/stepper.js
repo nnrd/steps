@@ -46,6 +46,12 @@ const create = (options) => {
             return stepRun;
         };
 
+        const checkDone = async (stepName, data) => {
+            const name = composeStepName(stepName);
+            const hash = hasher.getHash(name, data);
+            const existingRun = await storageHandler.getRun(name, hash, rootHash);
+        };
+
         const add = (stepName, stepFn) => {
             const name = composeStepName(stepName);
 
